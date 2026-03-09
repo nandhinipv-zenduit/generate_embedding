@@ -1,35 +1,36 @@
 import os
-import json
-from openai import OpenAI
+import openai
 
-# Load environment variable for OpenAI API
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not set in environment")
-
-client = OpenAI(api_key=OPENAI_API_KEY)
-
-# Inputs from Zoho Flow (or GitHub Action workflow dispatch)
+# Read environment variables
 TICKET_ID = os.getenv("TICKET_ID")
 TICKET_SUBJECT = os.getenv("TICKET_SUBJECT")
 TICKET_DESCRIPTION = os.getenv("TICKET_DESCRIPTION")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if not TICKET_SUBJECT or not TICKET_DESCRIPTION:
-    raise ValueError("TICKET_SUBJECT and TICKET_DESCRIPTION are required")
+# Validate required fields
+if not TICKET_ID:
+    raise ValueError("TICKET_ID is required")
+if not TICKET_SUBJECT:
+    raise ValueError("TICKET_SUBJECT is required")
+if not TICKET_DESCRIPTION:
+    raise ValueError("TICKET_DESCRIPTION is required")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY is required")
+
+# Combine subject + description for embedding
+text_to_embed = f"{TICKET_SUBJECT}\n{TICKET_DESCRIPTION}"
+
+# Initialize OpenAI client
+openai.api_key = OPENAI_API_KEY
 
 # Generate embedding
-response = client.embeddings.create(
-    model="text-embedding-3-small",
-    input=ticket_summary
-)
-
-embedding_vector = response.data[0].embedding
-
-# Output JSON (Zoho Flow can parse this)
-output = {
-    "ticket_id": ticket_id,
-    "embedding": embedding_vector
-}
-
-# Print JSON to stdout
-print(json.dumps(output))
+try:
+    response = openai.Embedding.create(
+        input=text_to_embed,
+        model="text-embedding-3-large"
+    )
+    embedding = response['data'][0]['embedding']
+    print(f"Embedding generated for ticket {TICKET_ID}:")
+    print(embedding[:10], "...")  # Print first 10 numbers as sample
+except Exception as e:
+    print(f"Error generating embedding: {e}")
