@@ -10,11 +10,12 @@ if not OPENAI_API_KEY:
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Inputs from Zoho Flow (or GitHub Action workflow dispatch)
-ticket_id = os.environ.get("TICKET_ID", "")
-ticket_summary = os.environ.get("TICKET_SUMMARY", "")
+TICKET_ID = os.getenv("TICKET_ID")
+TICKET_SUBJECT = os.getenv("TICKET_SUBJECT")
+TICKET_DESCRIPTION = os.getenv("TICKET_DESCRIPTION")
 
-if not ticket_summary:
-    raise ValueError("TICKET_SUMMARY is required")
+if not TICKET_SUBJECT or not TICKET_DESCRIPTION:
+    raise ValueError("TICKET_SUBJECT and TICKET_DESCRIPTION are required")
 
 # Generate embedding
 response = client.embeddings.create(
