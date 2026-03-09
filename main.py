@@ -1,13 +1,14 @@
+# main.py
 import os
-import openai
+from openai import OpenAI
 
-# Read environment variables
+# Read environment variables from GitHub Actions
 TICKET_ID = os.getenv("TICKET_ID")
 TICKET_SUBJECT = os.getenv("TICKET_SUBJECT")
 TICKET_DESCRIPTION = os.getenv("TICKET_DESCRIPTION")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Validate required fields
+# Simple validation
 if not TICKET_ID:
     raise ValueError("TICKET_ID is required")
 if not TICKET_SUBJECT:
@@ -17,20 +18,22 @@ if not TICKET_DESCRIPTION:
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is required")
 
-# Combine subject + description for embedding
-text_to_embed = f"{TICKET_SUBJECT}\n{TICKET_DESCRIPTION}"
-
 # Initialize OpenAI client
-openai.api_key = OPENAI_API_KEY
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Generate embedding
 try:
-    response = openai.Embedding.create(
-        input=text_to_embed,
-        model="text-embedding-3-large"
+    # Generate embedding using the "small" model
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=f"{TICKET_SUBJECT}\n{TICKET_DESCRIPTION}"
     )
-    embedding = response['data'][0]['embedding']
-    print(f"Embedding generated for ticket {TICKET_ID}:")
-    print(embedding[:10], "...")  # Print first 10 numbers as sample
+
+    embedding_vector = response.data[0].embedding
+
+    print(f"Ticket ID: {TICKET_ID}")
+    print(f"Embedding length: {len(embedding_vector)}")
+    print(f"Embedding preview (first 10 values): {embedding_vector[:10]}")
+
 except Exception as e:
-    print(f"Error generating embedding: {e}")
+    print("Error generating embedding:", e)
+    raise
