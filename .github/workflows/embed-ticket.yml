@@ -16,8 +16,10 @@ on:
 jobs:
   embed_ticket:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -33,4 +35,6 @@ jobs:
           TICKET_ID: ${{ github.event.inputs.ticket_id }}
           TICKET_SUBJECT: ${{ github.event.inputs.ticket_subject }}
           TICKET_DESCRIPTION: ${{ github.event.inputs.ticket_description }}
-        run: python main.py
+        run: |
+          python main.py > result.json
+          cat result.json
