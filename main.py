@@ -1,39 +1,37 @@
-# main.py
 import os
+import json
 import openai
 
-# Read environment variables from GitHub Actions
-TICKET_ID = os.getenv("TICKET_ID")
-TICKET_SUBJECT = os.getenv("TICKET_SUBJECT")
-TICKET_DESCRIPTION = os.getenv("TICKET_DESCRIPTION")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Load environment variables
+TICKET_ID = os.environ.get("TICKET_ID")
+TICKET_SUBJECT = os.environ.get("TICKET_SUBJECT")
+TICKET_DESCRIPTION = os.environ.get("TICKET_DESCRIPTION")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-# Simple validation
-if not TICKET_ID:
-    raise ValueError("TICKET_ID is required")
-if not TICKET_SUBJECT:
-    raise ValueError("TICKET_SUBJECT is required")
-if not TICKET_DESCRIPTION:
-    raise ValueError("TICKET_DESCRIPTION is required")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY is required")
+# Basic validation
+if not TICKET_ID or not TICKET_SUBJECT or not TICKET_DESCRIPTION:
+    raise ValueError("TICKET_ID, TICKET_SUBJECT and TICKET_DESCRIPTION are required")
 
-# Set the API key
 openai.api_key = OPENAI_API_KEY
 
 try:
-    # Generate embedding using the "small" model
-    response = openai.embeddings.create(
-        model="text-embedding-3-small",
-        input=f"{TICKET_SUBJECT}\n{TICKET_DESCRIPTION}"
+    # Generate embedding using the small model
+    response = openai.Embedding.create(
+        input=TICKET_DESCRIPTION,
+        model="text-embedding-3-small"
     )
+    embedding = response['data'][0]['embedding']
 
-    embedding_vector = response.data[0].embedding
+    # Prepare JSON output for Zoho Flow
+    output = {
+        "ticket_id": TICKET_ID,
+        "ticket_subject": TICKET_SUBJECT,
+        "embedding": embedding
+    }
 
-    print(f"Ticket ID: {TICKET_ID}")
-    print(f"Embedding length: {len(embedding_vector)}")
-    print(f"Embedding preview (first 10 values): {embedding_vector[:10]}")
+    # Print JSON so GitHub Action captures it
+    print(json.dumps(output))
 
 except Exception as e:
-    print("Error generating embedding:", e)
+    print(json.dumps({"error": str(e)}))
     raise
