@@ -18,7 +18,7 @@ if not ticket_summary:
 
 # Generate embedding
 response = client.embeddings.create(
-    model="text-embedding-3-large",
+    model="text-embedding-3-small",
     input=ticket_summary
 )
 
