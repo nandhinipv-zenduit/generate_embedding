@@ -26,8 +26,13 @@ jobs:
         with:
           python-version: '3.11'
 
+   
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install openai==0.28.0
+          pip install python-dotenv>=1.0.0
+          pip install numpy
 
       - name: Generate embedding
         env:
