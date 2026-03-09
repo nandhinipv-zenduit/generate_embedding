@@ -1,48 +1,40 @@
 import os
 import json
 import openai
-import requests
 
-# Load environment variables
-openai.api_key = os.getenv("OPENAI_API_KEY")
-ticket_id = os.getenv("TICKET_ID")
-ticket_subject = os.getenv("TICKET_SUBJECT")
-ticket_description = os.getenv("TICKET_DESCRIPTION")
-zoho_webhook_url = os.getenv("ZOHO_FLOW_WEBHOOK")
+# Get ticket info from environment variables
+TICKET_ID = os.getenv("TICKET_ID")
+TICKET_SUBJECT = os.getenv("TICKET_SUBJECT")
+TICKET_DESCRIPTION = os.getenv("TICKET_DESCRIPTION")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Validate inputs
-if not ticket_subject:
-    raise ValueError("TICKET_SUBJECT is required")
-if not ticket_description:
-    raise ValueError("TICKET_DESCRIPTION is required")
-if not ticket_id:
-    raise ValueError("TICKET_ID is required")
-if not zoho_webhook_url:
-    raise ValueError("ZOHO_FLOW_WEBHOOK is required")
+# Basic validation
+if not TICKET_SUBJECT or not TICKET_DESCRIPTION:
+    raise ValueError("TICKET_SUBJECT and TICKET_DESCRIPTION are required")
 
-# Generate embedding
+openai.api_key = OPENAI_API_KEY
+
 try:
+    # Generate embedding using the small model
     response = openai.Embedding.create(
         model="text-embedding-3-small",
-        input=f"{ticket_subject}\n{ticket_description}"
+        input=TICKET_SUBJECT + "\n" + TICKET_DESCRIPTION
     )
-    embedding_vector = response['data'][0]['embedding']
-except Exception as e:
-    print("Error generating embedding:", e)
-    embedding_vector = []
 
-# Prepare payload for Zoho Flow
-payload = {
-    "ticket_id": ticket_id,
-    "ticket_subject": ticket_subject,
-    "ticket_description": ticket_description,
-    "embedding": embedding_vector
-}
+    embedding = response['data'][0]['embedding']
 
-# Send to Zoho Flow webhook
-try:
-    headers = {"Content-Type": "application/json"}
-    res = requests.post(zoho_webhook_url, headers=headers, data=json.dumps(payload))
-    print("Webhook response:", res.status_code, res.text)
+    # Output to JSON (this can be picked up by GitHub or other apps)
+    result = {
+        "ticket_id": TICKET_ID,
+        "embedding": embedding
+    }
+
+    # Save result to file
+    with open("result.json", "w") as f:
+        json.dump(result, f)
+
+    print(json.dumps(result))  # So GitHub Actions logs show it
+
 except Exception as e:
-    print("Error sending to Zoho Flow:", e)
+    print("Error generating embedding:", str(e))
+    raise
