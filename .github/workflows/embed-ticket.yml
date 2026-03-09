@@ -22,14 +22,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Generate embedding
+      - name: Generate embedding and send to Zoho Flow
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ZOHO_FLOW_WEBHOOK: ${{ secrets.ZOHO_FLOW_WEBHOOK }}
           TICKET_ID: ${{ github.event.inputs.ticket_id }}
           TICKET_SUBJECT: ${{ github.event.inputs.ticket_subject }}
           TICKET_DESCRIPTION: ${{ github.event.inputs.ticket_description }}
