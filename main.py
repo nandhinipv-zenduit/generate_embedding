@@ -1,6 +1,6 @@
 # main.py
 import os
-from openai import OpenAI
+import openai
 
 # Read environment variables from GitHub Actions
 TICKET_ID = os.getenv("TICKET_ID")
@@ -18,12 +18,12 @@ if not TICKET_DESCRIPTION:
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY is required")
 
-# Initialize OpenAI client
-client = OpenAI(api_key=OPENAI_API_KEY)
+# Set the API key
+openai.api_key = OPENAI_API_KEY
 
 try:
     # Generate embedding using the "small" model
-    response = client.embeddings.create(
+    response = openai.embeddings.create(
         model="text-embedding-3-small",
         input=f"{TICKET_SUBJECT}\n{TICKET_DESCRIPTION}"
     )
